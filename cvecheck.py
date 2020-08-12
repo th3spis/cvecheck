@@ -13,9 +13,12 @@ today = datetime.now() #.strftime('%Y-%m-%d')
 
 # Arguments parsing
 parser = argparse.ArgumentParser()
-parser.add_argument('-d', default=today, dest='DATE')
+parser.add_argument('-d', default=today, dest='DATE', help = 'Specify the date range in which you want to find CVEs.')
+parser.add_argument('-s', default=1000, dest='SIZE', help = 'Specify the maximum number of CVEs to look into (Up to 5000 due to NIST security.)')
+parser.add_argument('-cvss', default=8.5, dest='CVSS', help='Specify the minimun cvss3 score you want to look for.')
 parser.add_argument('-t', default='', dest='TGTOKENID', nargs=2)
 namespace = parser.parse_args()
+
 
 #set of telegram tokens
 try:
@@ -25,19 +28,24 @@ except(IndexError):
 	tgtoken = ''
 	tgid = ''
 
+#set of query params
+cvss = float(namespace.CVSS)
+size = namespace.SIZE
 date = namespace.DATE
-#year = date.split('-')[0]
 submonth = timedelta(weeks=4)
 endate = date.strftime('%Y-%m-%d')
 stdate = (date - submonth).strftime('%Y-%m-%d')
 
-query = '?pubStartDate=' + quote(stdate) + quote('T00:00:00:000 UTC-05:00') + '&pubEndDate=' + quote(endate) + quote('T00:00:00:000 UTC-05:00')
+
+query = '?resultsPerPage=' +  str(size) + '&pubStartDate=' + quote(stdate) + quote('T00:00:00:000 UTC-05:00') + '&pubEndDate=' + quote(endate) + quote('T00:00:00:000 UTC-05:00')
 
 print('\n')
-print('Searching for critical CVE between: ', stdate, ' and ', endate, '\n')
+print('Searching for critical CVEs between: ', stdate, ' and ', endate, '\n')
 print('...\n')
 
+
 cves = []
+
 
 tgurl = 'https://api.telegram.org/bot'
 tgfull = '{0}{1}/sendMessage'.format(tgurl, tgtoken)
@@ -45,27 +53,30 @@ feedlink = 'https://services.nvd.nist.gov/rest/json/cves/1.0' + query
 
 #print('\n Quering feedlink: ' + feedlink + '\n \n ')
 
+
 #get the last 20 modified CVEs
 getjson = urlopen(Request(feedlink, headers={'User-Agent': 'Mozilla'}))
-jsonr = getjson.read()
+jsonr = loads(getjson.read().decode('utf-8'))
+n = jsonr['totalResults']
 
-print('... retrieved CVEs... \n')
-print('... parsing data...\n\n')
+print('... retring CVEs ... \n')
+print('... found ', n, 'CVEs  ...\n')
+print('... parsing', len(jsonr['result']['CVE_Items']), ' of them ...\n\n')
 
-for i in range(0,20):
+for i in range(0,n):
 	try:
-		#print('entered\n')
-		cve = loads(jsonr.decode('utf-8'))['result']['CVE_Items'][i]
+		cve = jsonr['result']['CVE_Items'][i]
 		score = cve['impact']['baseMetricV3']['cvssV3']['baseScore']
 		name = cve['cve']['CVE_data_meta']['ID']
 		info = cve['cve']['description']['description_data'][0]['value']
-		#print(cve, '\n')
-		if score >= 8.5:
+		if score >= cvss:
 			result = '{0} {1} ({2}...)' \
 				.format(name, score, info[0:50])
 			cves.append(result)
+			print(result)
 	except(ValueError, KeyError, TypeError, IndexError):
 		continue
+
 
 #data for telegram bot
 tgdata = '{0} report: \n {1}' .format(date, '\n'.join(cves))
@@ -77,7 +88,8 @@ if len (cves) == 0:
 	print('No critical vulns found for today. Let\'s get into other thing, butterfly.')
 	exit(0)
 else:
-	print('\n'.join(cves))
+	#print('\n'.join(cves))
+	print('\n\n ', len(cves), ' critical CVEs found. \n')
 	if tgtoken == '' or tgid == '':
 		print('\nTelegram thing not working yet. But it will. Sorry friend.')
 		exit(1)
