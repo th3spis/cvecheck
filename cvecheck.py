@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+"""
+COMING SOON
+	-Also date of modification
+	-Also output reference links about CVEs
+"""
+
 from sys import exit
 from datetime import datetime
 from datetime import timedelta
