@@ -2,7 +2,9 @@
 
 """
 COMING SOON
-	-Also date of modification
+	-Date modification functionality
+	-More date related options (diferent range / last week / last days)
+	-Also allow search by date of modification, not only creation 
 	-Also output reference links about CVEs
 """
 
@@ -19,7 +21,7 @@ today = datetime.now() #.strftime('%Y-%m-%d')
 
 # Arguments parsing
 parser = argparse.ArgumentParser()
-parser.add_argument('-d', default=today, dest='DATE', help = 'Specify the date range in which you want to find CVEs.')
+parser.add_argument('-d', default=today, dest='DATE', help = 'NOT FULLY IMPLEMENTED YET. Specify the date range in which you want to find CVEs.')
 parser.add_argument('-s', default=1000, dest='SIZE', help = 'Specify the maximum number of CVEs to look into (Up to 5000 due to NIST security.)')
 parser.add_argument('-cvss', default=8.5, dest='CVSS', help='Specify the minimun cvss3 score you want to look for.')
 parser.add_argument('-t', default='', dest='TGTOKENID', nargs=2)
