@@ -67,7 +67,7 @@ getjson = urlopen(Request(feedlink, headers={'User-Agent': 'Mozilla'}))
 jsonr = loads(getjson.read().decode('utf-8'))
 n = jsonr['totalResults']
 
-print('... retring CVEs ... \n')
+print('... retrievng CVEs ... \n')
 print('... found ', n, 'CVEs  ...\n')
 print('... parsing', len(jsonr['result']['CVE_Items']), ' of them ...\n\n')
 
@@ -97,7 +97,7 @@ if len (cves) == 0:
 	exit(0)
 else:
 	#print('\n'.join(cves))
-	print('\n\n ', len(cves), ' critical CVEs found. \n')
+	print('\n\n ', len(cves), ' critical CVEs found out of ', n, ' from the last month. \n')
 	if tgtoken == '' or tgid == '':
 		print('\nTelegram thing not working yet. But it will. Sorry friend.')
 		exit(1)
